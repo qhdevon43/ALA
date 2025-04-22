@@ -63,8 +63,18 @@ class ArbitrageRecommendations {
         // Get broker names
         const brokerNames = Object.keys(analysis.brokerAnalysis);
         
-        // Optimize diff threshold
-        recommended.diffThreshold = this.optimizeDiffThreshold(analysis);
+        // Optimize diff thresholds
+        const diffThresholds = this.optimizeDiffThreshold(analysis);
+        recommended.diffThreshold = diffThresholds.global;
+        
+        // Store broker-specific diff thresholds
+        if (recommended.broker1) {
+            recommended.broker1.diffThreshold = diffThresholds.broker1;
+        }
+        
+        if (recommended.broker2) {
+            recommended.broker2.diffThreshold = diffThresholds.broker2;
+        }
         
         // Optimize broker-specific settings
         if (brokerNames.length >= 1 && recommended.broker1) {
@@ -93,79 +103,114 @@ class ArbitrageRecommendations {
     /**
      * Optimize differential threshold
      * @param {Object} analysis - Analysis results
-     * @returns {number} - Optimized threshold
+     * @returns {Object} - Optimized thresholds for each broker and global
      */
     optimizeDiffThreshold(analysis) {
         // Start with current threshold
         let threshold = this.currentSettings.diffThreshold || 30;
         
-        // Get all differentials from all brokers
-        const allDifferentials = [];
+        // Create result object with default values
+        const result = {
+            global: threshold,
+            broker1: threshold,
+            broker2: threshold
+        };
+        
+        // Get broker-specific differentials
+        const brokerDifferentials = {};
         
         for (const broker in analysis.brokerAnalysis) {
             const brokerAnalysis = analysis.brokerAnalysis[broker];
             
             if (brokerAnalysis.differentials && brokerAnalysis.differentials.length > 0) {
-                allDifferentials.push(...brokerAnalysis.differentials);
+                brokerDifferentials[broker] = brokerAnalysis.differentials;
             }
         }
         
-        if (allDifferentials.length === 0) {
-            return threshold;
+        // If no differentials found, return default values
+        if (Object.keys(brokerDifferentials).length === 0) {
+            return result;
         }
         
-        // Separate profitable and loss-making differentials
-        const sequenceMap = new Map();
-        
-        for (const seqAnalysis of analysis.sequenceAnalysis) {
-            sequenceMap.set(seqAnalysis.sequenceId, seqAnalysis.netProfitWithCalculatedCommission > 0);
-        }
-        
-        const profitableDiffs = [];
-        const lossDiffs = [];
-        
-        for (const diff of allDifferentials) {
-            // We don't have a direct link from differential to sequence profit
-            // Using the actual differential value as a proxy
-            if (diff.actual > diff.threshold + 5) {
-                profitableDiffs.push(diff.actual);
-            } else if (diff.actual < diff.threshold + 2) {
-                lossDiffs.push(diff.actual);
+        // Process each broker's differentials
+        for (const broker in brokerDifferentials) {
+            const diffs = brokerDifferentials[broker];
+            
+            // Separate profitable and loss-making differentials
+            const profitableDiffs = [];
+            const lossDiffs = [];
+            
+            for (const diff of diffs) {
+                // Using the actual differential value as a proxy for profitability
+                if (diff.actual > diff.threshold + 5) {
+                    profitableDiffs.push(diff.actual);
+                } else if (diff.actual < diff.threshold + 2) {
+                    lossDiffs.push(diff.actual);
+                }
+            }
+            
+            // If we have enough data, find the optimal threshold for this broker
+            if (profitableDiffs.length > 0 && lossDiffs.length > 0) {
+                // Sort the differentials
+                profitableDiffs.sort((a, b) => a - b);
+                lossDiffs.sort((a, b) => a - b);
+                
+                // Find a threshold that would exclude most loss-making differentials
+                // while keeping most profitable ones
+                const lossPercentile75 = lossDiffs[Math.floor(lossDiffs.length * 0.75)];
+                const profitPercentile25 = profitableDiffs[Math.floor(profitableDiffs.length * 0.25)];
+                
+                // Choose a threshold between these values
+                const optimalThreshold = Math.round((lossPercentile75 + profitPercentile25) / 2);
+                
+                // Don't change the threshold too drastically
+                const maxChange = 5;
+                const minThreshold = Math.max(threshold - maxChange, 20);
+                const maxThreshold = Math.min(threshold + maxChange, 50);
+                
+                const brokerOptimalThreshold = Math.max(minThreshold, Math.min(optimalThreshold, maxThreshold));
+                
+                // Assign to the appropriate broker
+                if (broker === this.currentSettings.broker1?.name) {
+                    result.broker1 = brokerOptimalThreshold;
+                } else if (broker === this.currentSettings.broker2?.name) {
+                    result.broker2 = brokerOptimalThreshold;
+                }
+            } else {
+                // If we don't have enough data, make a small adjustment based on win rate
+                let adjustedThreshold = threshold;
+                
+                if (analysis.summary.winRate < 0.5) {
+                    // Increase threshold to be more selective
+                    adjustedThreshold = Math.min(threshold + 2, 50);
+                } else if (analysis.summary.winRate > 0.7) {
+                    // Threshold seems good or could be slightly lowered
+                    adjustedThreshold = Math.max(threshold - 1, 20);
+                }
+                
+                // Assign to the appropriate broker
+                if (broker === this.currentSettings.broker1?.name) {
+                    result.broker1 = adjustedThreshold;
+                } else if (broker === this.currentSettings.broker2?.name) {
+                    result.broker2 = adjustedThreshold;
+                }
             }
         }
         
-        // If we have enough data, find the optimal threshold
-        if (profitableDiffs.length > 0 && lossDiffs.length > 0) {
-            // Sort the differentials
-            profitableDiffs.sort((a, b) => a - b);
-            lossDiffs.sort((a, b) => a - b);
+        // Calculate global threshold as average of broker thresholds
+        if (result.broker1 !== threshold || result.broker2 !== threshold) {
+            // If we have custom broker thresholds, use their average
+            const validThresholds = [];
+            if (result.broker1 !== threshold) validThresholds.push(result.broker1);
+            if (result.broker2 !== threshold) validThresholds.push(result.broker2);
             
-            // Find a threshold that would exclude most loss-making differentials
-            // while keeping most profitable ones
-            const lossPercentile75 = lossDiffs[Math.floor(lossDiffs.length * 0.75)];
-            const profitPercentile25 = profitableDiffs[Math.floor(profitableDiffs.length * 0.25)];
-            
-            // Choose a threshold between these values
-            const optimalThreshold = Math.round((lossPercentile75 + profitPercentile25) / 2);
-            
-            // Don't change the threshold too drastically
-            const maxChange = 5;
-            const minThreshold = Math.max(threshold - maxChange, 20);
-            const maxThreshold = Math.min(threshold + maxChange, 50);
-            
-            return Math.max(minThreshold, Math.min(optimalThreshold, maxThreshold));
+            if (validThresholds.length > 0) {
+                const avgThreshold = Math.round(validThresholds.reduce((sum, val) => sum + val, 0) / validThresholds.length);
+                result.global = avgThreshold;
+            }
         }
         
-        // If we don't have enough data, make a small adjustment based on win rate
-        if (analysis.summary.winRate < 0.5) {
-            // Increase threshold to be more selective
-            return Math.min(threshold + 2, 50);
-        } else if (analysis.summary.winRate > 0.7) {
-            // Threshold seems good or could be slightly lowered
-            return Math.max(threshold - 1, 20);
-        }
-        
-        return threshold;
+        return result;
     }
 
     /**
@@ -319,27 +364,54 @@ class ArbitrageRecommendations {
     generateExplanations(analysis, recommendedSettings) {
         const explanations = [];
         
-        // Diff threshold explanation
-        const currentDiff = this.currentSettings.diffThreshold || 30;
-        const recommendedDiff = recommendedSettings.diffThreshold;
-        
-        if (recommendedDiff !== currentDiff) {
-            const direction = recommendedDiff > currentDiff ? 'increased' : 'decreased';
-            const explanation = {
-                setting: 'Differential Threshold',
-                current: currentDiff,
-                recommended: recommendedDiff,
-                change: recommendedDiff - currentDiff,
-                explanation: `The differential threshold should be ${direction} from ${currentDiff} to ${recommendedDiff} points. `
-            };
+        // Broker 1 diff threshold explanation
+        if (recommendedSettings.broker1 && this.currentSettings.broker1) {
+            const currentDiff = this.currentSettings.diffThreshold || 30;
+            const recommendedDiff = recommendedSettings.broker1.diffThreshold;
             
-            if (direction === 'increased') {
-                explanation.explanation += 'A higher threshold will filter out marginal opportunities that may not be profitable after accounting for execution factors.';
-            } else {
-                explanation.explanation += 'A lower threshold may allow more trading opportunities while still maintaining profitability.';
+            if (recommendedDiff !== currentDiff) {
+                const direction = recommendedDiff > currentDiff ? 'increased' : 'decreased';
+                const explanation = {
+                    setting: `Diff Broker #1 ${recommendedSettings.broker1.name}`,
+                    current: currentDiff,
+                    recommended: recommendedDiff,
+                    change: recommendedDiff - currentDiff,
+                    explanation: `The differential threshold for ${recommendedSettings.broker1.name} should be ${direction} from ${currentDiff} to ${recommendedDiff} points. `
+                };
+                
+                if (direction === 'increased') {
+                    explanation.explanation += 'A higher threshold will filter out marginal opportunities that may not be profitable after accounting for execution factors.';
+                } else {
+                    explanation.explanation += 'A lower threshold may allow more trading opportunities while still maintaining profitability.';
+                }
+                
+                explanations.push(explanation);
             }
+        }
+        
+        // Broker 2 diff threshold explanation
+        if (recommendedSettings.broker2 && this.currentSettings.broker2) {
+            const currentDiff = this.currentSettings.diffThreshold || 30;
+            const recommendedDiff = recommendedSettings.broker2.diffThreshold;
             
-            explanations.push(explanation);
+            if (recommendedDiff !== currentDiff) {
+                const direction = recommendedDiff > currentDiff ? 'increased' : 'decreased';
+                const explanation = {
+                    setting: `Diff Broker #2 ${recommendedSettings.broker2.name}`,
+                    current: currentDiff,
+                    recommended: recommendedDiff,
+                    change: recommendedDiff - currentDiff,
+                    explanation: `The differential threshold for ${recommendedSettings.broker2.name} should be ${direction} from ${currentDiff} to ${recommendedDiff} points. `
+                };
+                
+                if (direction === 'increased') {
+                    explanation.explanation += 'A higher threshold will filter out marginal opportunities that may not be profitable after accounting for execution factors.';
+                } else {
+                    explanation.explanation += 'A lower threshold may allow more trading opportunities while still maintaining profitability.';
+                }
+                
+                explanations.push(explanation);
+            }
         }
         
         // Broker 1 min spread explanation
@@ -350,7 +422,7 @@ class ArbitrageRecommendations {
             if (recommendedMin !== currentMin) {
                 const direction = recommendedMin > currentMin ? 'increased' : 'decreased';
                 const explanation = {
-                    setting: `${recommendedSettings.broker1.name} Min Spread`,
+                    setting: `Min Spread Broker #1 ${recommendedSettings.broker1.name}`,
                     current: currentMin,
                     recommended: recommendedMin,
                     change: recommendedMin - currentMin,
@@ -375,7 +447,7 @@ class ArbitrageRecommendations {
             if (recommendedMin !== currentMin) {
                 const direction = recommendedMin > currentMin ? 'increased' : 'decreased';
                 const explanation = {
-                    setting: `${recommendedSettings.broker2.name} Min Spread`,
+                    setting: `Min Spread Broker #2 ${recommendedSettings.broker2.name}`,
                     current: currentMin,
                     recommended: recommendedMin,
                     change: recommendedMin - currentMin,
@@ -399,7 +471,7 @@ class ArbitrageRecommendations {
         if (recommendedMax !== currentMax) {
             const direction = recommendedMax > currentMax ? 'increased' : 'decreased';
             const explanation = {
-                setting: 'Global Max Spread',
+                setting: 'Global Max Spread Slow',
                 current: currentMax,
                 recommended: recommendedMax,
                 change: recommendedMax - currentMax,
