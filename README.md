@@ -1,6 +1,6 @@
 # Arbitrage Log Analyzer (ALA)
 
-Version: 7.77 (Restored)
+Version: 8.0
 
 A comprehensive web-based tool for analyzing arbitrage trading logs. ALA helps traders identify profitable opportunities, analyze performance metrics, and optimize trading parameters.
 
@@ -11,6 +11,7 @@ The Arbitrage Log Analyzer (ALA) is a client-side web application designed to pa
 ## Key Features
 
 ### Log Analysis
+- **Multiple Log Formats**: Supports both DAAS and SHARP Trader log formats
 - **Sequence Detection**: Automatically identifies complete arbitrage sequences in log files
 - **Profit Calculation**: Accurate calculation of profits, including commission deductions
 - **Broker Performance**: Tracks execution times, slippage, and spread metrics by broker

@@ -10,13 +10,20 @@
 <body>
     <div class="container">
         <header>
-            <h1>Arbitrage Log Analyzer (ALA) v7.77</h1>
+            <h1>Arbitrage Log Analyzer (ALA) v8.0</h1>
             <p class="subtitle">Advanced arbitrage log analysis and optimization tool</p>
         </header>
 
         <div class="main-content">
             <div class="input-section">
                 <h2>Paste your arbitrage log below</h2>
+                <div class="input-group log-format-selector">
+                    <label for="log-format">Log Format:</label>
+                    <select id="log-format">
+                        <option value="daas">DAAS</option>
+                        <option value="sharp">SHARP Trader</option>
+                    </select>
+                </div>
                 <textarea id="log-input" placeholder="Paste your arbitrage log here..."></textarea>
                 
                 <div class="broker-settings">
@@ -184,11 +191,12 @@
         </div>
 
         <footer>
-            <p>&copy; 2025 Arbitrage Log Analyzer (ALA) v7.77. All rights reserved.</p>
+            <p>&copy; 2025 Arbitrage Log Analyzer (ALA) v8.0. All rights reserved.</p>
         </footer>
     </div>
 
     <script src="src/parser.js"></script>
+    <script src="src/sharp-parser.js"></script>
     <script src="src/analyzer.js"></script>
     <script src="src/recommendations.js"></script>
     <script src="src/simulator.js"></script>
