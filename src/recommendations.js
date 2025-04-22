@@ -377,7 +377,7 @@ class ArbitrageRecommendations {
                     current: currentDiff,
                     recommended: recommendedDiff,
                     change: recommendedDiff - currentDiff,
-                    explanation: `Based on analysis of ${analysis.sequenceAnalysis.length} sequences, the optimal differential threshold for ${recommendedSettings.broker1.name} should be ${direction} from ${currentDiff} to ${recommendedDiff} points. `
+                    explanation: `The differential threshold for ${recommendedSettings.broker1.name} should be ${direction} from ${currentDiff} to ${recommendedDiff} points. `
                 };
                 
                 if (direction === 'increased') {
@@ -403,7 +403,7 @@ class ArbitrageRecommendations {
                     current: currentDiff,
                     recommended: recommendedDiff,
                     change: recommendedDiff - currentDiff,
-                    explanation: `Based on analysis of ${analysis.sequenceAnalysis.length} sequences, the optimal differential threshold for ${recommendedSettings.broker2.name} should be ${direction} from ${currentDiff} to ${recommendedDiff} points. `
+                    explanation: `The differential threshold for ${recommendedSettings.broker2.name} should be ${direction} from ${currentDiff} to ${recommendedDiff} points. `
                 };
                 
                 if (direction === 'increased') {
@@ -483,9 +483,9 @@ class ArbitrageRecommendations {
             };
             
             if (direction === 'increased') {
-                explanation.explanation += `This higher maximum spread will allow trading during more volatile market conditions that historical data indicates can still yield profitable opportunities in ${Math.round((recommendedMax - currentMax) * 3)}% of cases.`;
+                explanation.explanation += 'A higher maximum spread will allow trading during more volatile conditions that may still be profitable.';
             } else {
-                explanation.explanation += `This lower maximum spread will filter out potentially risky trading conditions that statistical analysis shows led to negative outcomes in ${Math.round((currentMax - recommendedMax) * 4)}% of cases due to excessive volatility.`;
+                explanation.explanation += 'A lower maximum spread will filter out potentially risky trading conditions with excessive volatility.';
             }
             
             explanations.push(explanation);
@@ -506,9 +506,9 @@ class ArbitrageRecommendations {
             };
             
             if (direction === 'increased') {
-                explanation.explanation += `Based on analysis of ${analysis.sequenceAnalysis.length} trading sequences, a higher LMAX maximum spread will allow trading during more volatile market conditions that historically yielded profitable arbitrage opportunities in ${Math.round((recommendedFastMax - currentFastMax) * 2)}% of cases despite wider spreads.`;
+                explanation.explanation += 'A higher LMAX maximum spread will allow trading during more volatile market conditions that may still offer arbitrage opportunities.';
             } else {
-                explanation.explanation += `Statistical analysis of ${analysis.sequenceAnalysis.length} trading sequences indicates that a lower LMAX maximum spread will filter out ${Math.round((currentFastMax - recommendedFastMax) * 3)}% of potentially risky market conditions where excessive volatility historically led to negative outcomes.`;
+                explanation.explanation += 'A lower LMAX maximum spread will filter out potentially risky market conditions with excessive volatility.';
             }
             
             explanations.push(explanation);
@@ -545,8 +545,8 @@ class ArbitrageRecommendations {
                 title: 'Stop Loss Analysis',
                 content: `${sequencesWithStopLoss.length} out of ${totalSequences} sequences (${stopLossPercentage.toFixed(1)}%) had stop losses triggered. Of these, ${profitableWithStopLoss} (${stopLossProfitPercentage.toFixed(1)}%) were still profitable overall.`,
                 recommendation: stopLossProfitPercentage < 30 ? 
-                    `Based on analysis of ${sequencesWithStopLoss.length} stop loss events, increasing the differential threshold by ${Math.round(10 - stopLossProfitPercentage/5)} points would reduce unprofitable stop loss triggers by approximately ${Math.round(30 - stopLossProfitPercentage)}%.` : 
-                    `Based on analysis of ${sequencesWithStopLoss.length} stop loss events, the current stop loss behavior is within optimal parameters. The profit retention rate of ${stopLossProfitPercentage.toFixed(1)}% after stop losses indicates effective risk management.`
+                    'Consider increasing the differential threshold to reduce the number of trades that hit stop losses.' : 
+                    'The current stop loss behavior appears acceptable.'
             });
         }
         
@@ -576,7 +576,7 @@ class ArbitrageRecommendations {
             filteringAnalysis.push({
                 title: 'Execution Speed Analysis',
                 content: `Slow execution detected: ${content}.`,
-                recommendation: `Analysis of ${analysis.sequenceAnalysis.length} sequences shows that increasing the differential threshold by at least ${Math.round(avgExecTime/20)} points would compensate for the detected slower execution times, which historically led to ${Math.round(avgExecTime/10)}% more slippage.`
+                recommendation: 'Consider increasing the differential threshold to compensate for slower execution times, which can lead to more slippage.'
             });
         }
         
@@ -606,7 +606,7 @@ class ArbitrageRecommendations {
             filteringAnalysis.push({
                 title: 'Slippage Analysis',
                 content: `High slippage detected: ${content}.`,
-                recommendation: `Based on historical slippage patterns across ${analysis.sequenceAnalysis.length} sequences, adjusting the differential threshold by ${Math.abs(Math.round(avgSlippage/2))} points would optimize profitability by accounting for consistent slippage behavior.`
+                recommendation: 'Consider adjusting the differential threshold to account for consistent slippage patterns.'
             });
         }
         
@@ -642,7 +642,7 @@ class ArbitrageRecommendations {
             filteringAnalysis.push({
                 title: 'Spread Pattern Analysis',
                 content: `Unusual spread patterns detected: ${content}.`,
-                recommendation: `Statistical analysis of ${analysis.sequenceAnalysis.length} trading sequences suggests that adjusting min spread to filter out the bottom ${Math.round(minSpread * 5)}% of spreads and max spread to filter out the top ${Math.round(spreadRange * 2)}% of spreads would significantly improve profitability by eliminating abnormal market conditions.`
+                recommendation: 'Consider adjusting the min/max spread settings to filter out periods with abnormal spread behavior.'
             });
         }
         
@@ -664,9 +664,9 @@ class ArbitrageRecommendations {
             
             performanceInsights.push({
                 title: 'Overall Profitability',
-                content: `Based on analysis of ${analysis.sequenceAnalysis.length} trading sequences, the arbitrage strategy is ${profitability} with a net profit of $${Math.abs(analysis.summary.netProfit).toFixed(2)} and a win rate of ${winRate}%.`,
+                content: `The arbitrage strategy is ${profitability} with a net profit of $${Math.abs(analysis.summary.netProfit).toFixed(2)} and a win rate of ${winRate}%.`,
                 recommendation: analysis.summary.netProfit > 0 ? 
-                    `The current strategy is working well based on comprehensive analysis of historical data. Fine-tuning the recommended parameters could further improve profitability by an estimated ${Math.round(winRate/5)}% based on statistical modeling of similar market conditions.` : 
+                    'The current strategy is working well. Consider fine-tuning parameters to improve profitability further.' : 
                     'The current strategy needs significant adjustment to become profitable.'
             });
         }
