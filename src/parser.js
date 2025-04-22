@@ -578,15 +578,23 @@ class ArbitrageLogParser {
                         // Calculate commissions for both brokers (in dollars)
                         if (firstOrder.broker === 'FP') {
                             partCommission += 0.06; // $6 per 1.0 lot = $0.06 for 0.01 lot
+                            console.log('Added FP commission for first order: 0.06');
                         } else if (firstOrder.broker === 'IC') {
                             partCommission += 0.08; // $8 per 1.0 lot = $0.08 for 0.01 lot
+                            console.log('Added IC commission for first order: 0.08');
                         }
                         
                         if (secondOrder.broker === 'FP') {
                             partCommission += 0.06; // $6 per 1.0 lot = $0.06 for 0.01 lot
+                            console.log('Added FP commission for second order: 0.06');
                         } else if (secondOrder.broker === 'IC') {
                             partCommission += 0.08; // $8 per 1.0 lot = $0.08 for 0.01 lot
+                            console.log('Added IC commission for second order: 0.08');
                         }
+                        
+                        console.log(`First order: ${firstOrder.broker} ${firstOrder.direction} at ${firstOrder.openPrice}`);
+                        console.log(`Second order: ${secondOrder.broker} ${secondOrder.direction} at ${secondOrder.openPrice}`);
+                        console.log(`Price difference: ${priceDiff}, Profit: ${partProfit}, Commission: ${partCommission}`);
                     }
                 }
             } else {
