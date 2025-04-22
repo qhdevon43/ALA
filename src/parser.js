@@ -553,14 +553,65 @@ class ArbitrageLogParser {
             let partProfit = 0;
             let partCommission = 0;
 
-            // Process regular orders
-            if (part.orders) {
-                for (const order of part.orders) {
+            // Find paired orders for arbitrage calculation
+            if (part.orders && part.orders.length >= 2) {
+                // Sort orders by timestamp to ensure proper pairing
+                const sortedOrders = [...part.orders].sort((a, b) => 
+                    new Date(a.timestamp) - new Date(b.timestamp));
+                
+                // For XAUUSD arbitrage, we need to find the price difference between paired orders
+                if (sortedOrders.length >= 2 && 
+                    sortedOrders[0].instrument && 
+                    sortedOrders[0].instrument.toUpperCase().includes('XAUUSD')) {
+                    
+                    // Calculate price difference between the paired orders
+                    const firstOrder = sortedOrders[0];
+                    const secondOrder = sortedOrders[1];
+                    
+                    if (firstOrder.openPrice && secondOrder.openPrice) {
+                        // Calculate the price difference (absolute value)
+                        const priceDiff = Math.abs(secondOrder.openPrice - firstOrder.openPrice);
+                        
+                        // For XAUUSD: Each 0.01 point = 1 cent per 0.01 lot
+                        partProfit = priceDiff * 100 * firstOrder.lotSize;
+                        
+                        // Calculate commissions for both brokers (in dollars)
+                        if (firstOrder.broker === 'FP') {
+                            partCommission += 0.06; // $6 per 1.0 lot = $0.06 for 0.01 lot
+                        } else if (firstOrder.broker === 'IC') {
+                            partCommission += 0.08; // $8 per 1.0 lot = $0.08 for 0.01 lot
+                        }
+                        
+                        if (secondOrder.broker === 'FP') {
+                            partCommission += 0.06; // $6 per 1.0 lot = $0.06 for 0.01 lot
+                        } else if (secondOrder.broker === 'IC') {
+                            partCommission += 0.08; // $8 per 1.0 lot = $0.08 for 0.01 lot
+                        }
+                    }
+                }
+            } else {
+                // Process regular orders if not paired
+                if (part.orders) {
+                    for (const order of part.orders) {
+                        if (order.profit) {
+                            partProfit += order.profit;
+                        }
+                    }
+                }
+            }
+
+            // Process virtual orders
+            if (part.virtualOrders) {
+                for (const order of part.virtualOrders) {
                     if (order.profit) {
                         partProfit += order.profit;
                     }
+                }
+            }
 
-                    // Track broker stats
+            // Track broker stats
+            if (part.orders) {
+                for (const order of part.orders) {
                     if (order.broker) {
                         if (!brokerStats.has(order.broker)) {
                             brokerStats.set(order.broker, {
@@ -583,16 +634,7 @@ class ArbitrageLogParser {
                 }
             }
 
-            // Process virtual orders
-            if (part.virtualOrders) {
-                for (const order of part.virtualOrders) {
-                    if (order.profit) {
-                        partProfit += order.profit;
-                    }
-                }
-            }
-
-            // Store part profit
+            // Store part profit and commission
             part.profit = partProfit;
             part.commission = partCommission;
 

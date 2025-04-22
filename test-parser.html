@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parser Test</title>
+</head>
+<body>
+    <h1>Arbitrage Log Parser Test</h1>
+    <div id="results"></div>
+
+    <script src="src/parser.js"></script>
+    <script>
+        // Function to load the test log file
+        async function loadTestLog() {
+            try {
+                const response = await fetch('test-log.txt');
+                return await response.text();
+            } catch (error) {
+                console.error('Error loading test log:', error);
+                return null;
+            }
+        }
+
+        // Function to run the test
+        async function runTest() {
+            const resultsDiv = document.getElementById('results');
+            
+            // Load the test log
+            const logText = await loadTestLog();
+            if (!logText) {
+                resultsDiv.innerHTML = '<p style="color: red;">Failed to load test log</p>';
+                return;
+            }
+
+            // Parse the log
+            const parser = new ArbitrageLogParser();
+            const sequences = parser.parseLog(logText);
+
+            // Display results
+            let html = '<h2>Test Results</h2>';
+            
+            if (sequences.length === 0) {
+                html += '<p>No sequences found</p>';
+            } else {
+                html += `<p>Found ${sequences.length} sequence(s)</p>`;
+                
+                sequences.forEach((sequence, index) => {
+                    html += `<h3>Sequence ${index + 1}</h3>`;
+                    html += `<p>Total Parts: ${sequence.parts.length}</p>`;
+                    
+                    sequence.parts.forEach((part, partIndex) => {
+                        html += `<h4>Part ${partIndex + 1}</h4>`;
+                        html += `<p>Profit: $${part.profit.toFixed(2)}</p>`;
+                        html += `<p>Commission: $${part.commission.toFixed(2)}</p>`;
+                        html += `<p>Net: $${(part.profit - part.commission).toFixed(2)}</p>`;
+                        
+                        if (part.orders && part.orders.length > 0) {
+                            html += `<p>Orders: ${part.orders.length}</p>`;
+                            part.orders.forEach((order, orderIndex) => {
+                                html += `<div style="margin-left: 20px;">`;
+                                html += `<p>Order ${orderIndex + 1}: ${order.broker || 'Unknown'} ${order.direction} ${order.lotSize} ${order.instrument} at ${order.openPrice}</p>`;
+                                if (order.closePrice) {
+                                    html += `<p>Closed at: ${order.closePrice}</p>`;
+                                }
+                                html += `</div>`;
+                            });
+                        }
+                        
+                        if (part.virtualOrders && part.virtualOrders.length > 0) {
+                            html += `<p>Virtual Orders: ${part.virtualOrders.length}</p>`;
+                        }
+                    });
+                    
+                    html += `<h4>Sequence Totals</h4>`;
+                    html += `<p>Total Profit: $${sequence.totalProfit.toFixed(2)}</p>`;
+                    html += `<p>Total Commission: $${sequence.totalCommission.toFixed(2)}</p>`;
+                    html += `<p>Net Profit: $${sequence.netProfit.toFixed(2)}</p>`;
+                });
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        // Run the test when the page loads
+        window.onload = runTest;
+    </script>
+</body>
+</html>
