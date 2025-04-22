@@ -418,13 +418,14 @@ class ArbitrageRecommendations {
         
         // Broker 1 min spread explanation
         if (recommendedSettings.broker1 && this.currentSettings.broker1) {
-            const currentMin = this.currentSettings.broker1.minSpread || 5;
+            const currentMin = this.currentSettings.broker1.minSpread || 0;
             const recommendedMin = recommendedSettings.broker1.minSpread;
             
-            if (recommendedMin !== currentMin) {
+            // Always include broker 1 min spread regardless of whether it changed
+            {
                 const direction = recommendedMin > currentMin ? 'increased' : 'decreased';
                 const explanation = {
-                    setting: `Min Spread Broker #1 ${recommendedSettings.broker1.name}`,
+                    setting: `Min Spread Broker #1 (${recommendedSettings.broker1.name})`,
                     current: currentMin,
                     recommended: recommendedMin,
                     change: recommendedMin - currentMin,
@@ -443,13 +444,14 @@ class ArbitrageRecommendations {
         
         // Broker 2 min spread explanation
         if (recommendedSettings.broker2 && this.currentSettings.broker2) {
-            const currentMin = this.currentSettings.broker2.minSpread || 5;
+            const currentMin = this.currentSettings.broker2.minSpread || 0;
             const recommendedMin = recommendedSettings.broker2.minSpread;
             
-            if (recommendedMin !== currentMin) {
+            // Always include broker 2 min spread regardless of whether it changed
+            {
                 const direction = recommendedMin > currentMin ? 'increased' : 'decreased';
                 const explanation = {
-                    setting: `Min Spread Broker #2 ${recommendedSettings.broker2.name}`,
+                    setting: `Min Spread Broker #2 (${recommendedSettings.broker2.name})`,
                     current: currentMin,
                     recommended: recommendedMin,
                     change: recommendedMin - currentMin,
