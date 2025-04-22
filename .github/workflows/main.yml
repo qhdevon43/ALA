@@ -1,0 +1,47 @@
+name: Validate and Deploy
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+    
+    - name: Install dependencies
+      run: |
+        npm install -g htmlhint stylelint eslint
+    
+    - name: Validate HTML
+      run: htmlhint "*.html"
+    
+    - name: Validate CSS
+      run: stylelint "src/*.css" || true
+    
+    - name: Validate JavaScript
+      run: eslint "src/*.js" || true
+  
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@4.1.4
+      with:
+        branch: gh-pages
+        folder: .

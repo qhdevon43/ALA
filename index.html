@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbitrage Log Analyzer (ALA)</title>
+    <link rel="stylesheet" href="src/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Arbitrage Log Analyzer (ALA)</h1>
+            <p class="subtitle">Advanced arbitrage log analysis and optimization tool</p>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2>Paste your arbitrage log below</h2>
+                <textarea id="log-input" placeholder="Paste your arbitrage log here..."></textarea>
+                
+                <div class="broker-settings">
+                    <h3>Broker Settings</h3>
+                    <div class="broker-grid">
+                        <div class="broker-column">
+                            <h4>Broker 1</h4>
+                            <div class="input-group">
+                                <label for="broker1-name">Name:</label>
+                                <input type="text" id="broker1-name" value="FP">
+                            </div>
+                            <div class="input-group">
+                                <label for="broker1-commission">Commission (per 1.0 lot):</label>
+                                <input type="number" id="broker1-commission" value="6" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="broker1-min-spread">Min Spread:</label>
+                                <input type="number" id="broker1-min-spread" value="5" step="0.1">
+                            </div>
+                        </div>
+                        <div class="broker-column">
+                            <h4>Broker 2</h4>
+                            <div class="input-group">
+                                <label for="broker2-name">Name:</label>
+                                <input type="text" id="broker2-name" value="IC">
+                            </div>
+                            <div class="input-group">
+                                <label for="broker2-commission">Commission (per 1.0 lot):</label>
+                                <input type="number" id="broker2-commission" value="8" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="broker2-min-spread">Min Spread:</label>
+                                <input type="number" id="broker2-min-spread" value="9" step="0.1">
+                            </div>
+                        </div>
+                        <div class="broker-column">
+                            <h4>Global Settings</h4>
+                            <div class="input-group">
+                                <label for="global-max-spread">Global Max Spread:</label>
+                                <input type="number" id="global-max-spread" value="20" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="fast-max-spread">LMAX Max Spread:</label>
+                                <input type="number" id="fast-max-spread" value="100" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="diff-threshold">Diff Threshold:</label>
+                                <input type="number" id="diff-threshold" value="30" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-container">
+                    <button id="analyze-btn" class="primary-btn">Analyze Log</button>
+                    <button id="clear-btn" class="secondary-btn">Clear</button>
+                </div>
+            </div>
+
+            <div class="results-section" id="results-section" style="display: none;">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="summary">Summary</button>
+                    <button class="tab-btn" data-tab="sequences">Sequences</button>
+                    <button class="tab-btn" data-tab="recommendations">Recommendations</button>
+                    <button class="tab-btn" data-tab="simulation">Simulation</button>
+                </div>
+                
+                <div class="tab-content">
+                    <div id="summary-tab" class="tab-pane active">
+                        <h3>Analysis Summary</h3>
+                        <div class="summary-stats">
+                            <div class="stat-card">
+                                <h4>Total Sequences</h4>
+                                <p id="total-sequences">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Profitable Sequences</h4>
+                                <p id="profitable-sequences">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Loss-making Sequences</h4>
+                                <p id="loss-sequences">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Total Net Profit</h4>
+                                <p id="total-profit">$0.00</p>
+                            </div>
+                        </div>
+                        <div class="broker-stats">
+                            <div class="broker-stat-card">
+                                <h4>Broker 1 (<span id="summary-broker1-name">FP</span>)</h4>
+                                <div class="stat-row">
+                                    <span>Avg. Execution Time:</span>
+                                    <span id="broker1-avg-exec">0 ms</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Avg. Slippage:</span>
+                                    <span id="broker1-avg-slippage">0 pts</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Avg. Spread:</span>
+                                    <span id="broker1-avg-spread">0 pts</span>
+                                </div>
+                            </div>
+                            <div class="broker-stat-card">
+                                <h4>Broker 2 (<span id="summary-broker2-name">IC</span>)</h4>
+                                <div class="stat-row">
+                                    <span>Avg. Execution Time:</span>
+                                    <span id="broker2-avg-exec">0 ms</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Avg. Slippage:</span>
+                                    <span id="broker2-avg-slippage">0 pts</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Avg. Spread:</span>
+                                    <span id="broker2-avg-spread">0 pts</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="sequences-tab" class="tab-pane">
+                        <h3>Arbitrage Sequences</h3>
+                        <div id="sequences-container">
+                            <!-- Sequences will be added here dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div id="recommendations-tab" class="tab-pane">
+                        <h3>Optimization Recommendations</h3>
+                        <div class="recommendations-container">
+                            <div class="recommendation-card">
+                                <h4>Recommended Settings</h4>
+                                <div id="recommended-settings">
+                                    <!-- Recommendations will be added here dynamically -->
+                                </div>
+                            </div>
+                            <div class="recommendation-card">
+                                <h4>Filtering Analysis</h4>
+                                <div id="filtering-analysis">
+                                    <!-- Filtering analysis will be added here dynamically -->
+                                </div>
+                            </div>
+                            <div class="recommendation-card">
+                                <h4>Performance Insights</h4>
+                                <div id="performance-insights">
+                                    <!-- Performance insights will be added here dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="simulation-tab" class="tab-pane">
+                        <h3>Simulation with Recommended Settings</h3>
+                        <div class="simulation-controls">
+                            <button id="run-simulation-btn" class="primary-btn">Run Simulation</button>
+                        </div>
+                        <div id="simulation-results">
+                            <!-- Simulation results will be added here dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Arbitrage Log Analyzer (ALA). All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="src/parser.js"></script>
+    <script src="src/analyzer.js"></script>
+    <script src="src/recommendations.js"></script>
+    <script src="src/simulator.js"></script>
+    <script src="src/app.js"></script>
+</body>
+</html>
