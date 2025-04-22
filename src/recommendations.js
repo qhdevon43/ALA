@@ -372,7 +372,7 @@ class ArbitrageRecommendations {
             if (recommendedDiff !== currentDiff) {
                 const direction = recommendedDiff > currentDiff ? 'increased' : 'decreased';
                 const explanation = {
-                    setting: `Diff Broker #1 ${recommendedSettings.broker1.name}`,
+                    setting: `Broker #1 Differential (${recommendedSettings.broker1.name})`,
                     current: currentDiff,
                     recommended: recommendedDiff,
                     change: recommendedDiff - currentDiff,
@@ -397,7 +397,7 @@ class ArbitrageRecommendations {
             if (recommendedDiff !== currentDiff) {
                 const direction = recommendedDiff > currentDiff ? 'increased' : 'decreased';
                 const explanation = {
-                    setting: `Diff Broker #2 ${recommendedSettings.broker2.name}`,
+                    setting: `Broker #2 Differential (${recommendedSettings.broker2.name})`,
                     current: currentDiff,
                     recommended: recommendedDiff,
                     change: recommendedDiff - currentDiff,

@@ -69,8 +69,16 @@
             <input type="number" id="fast-max-spread" value="100" step="0.1">
         </div>
         <div>
-            <label>Diff Threshold:</label>
+            <label>Global Diff Threshold:</label>
             <input type="number" id="diff-threshold" value="30" step="0.1">
+        </div>
+        <div>
+            <label>Broker 1 Differential:</label>
+            <input type="number" id="broker1-diff" value="30" step="0.1">
+        </div>
+        <div>
+            <label>Broker 2 Differential:</label>
+            <input type="number" id="broker2-diff" value="30" step="0.1">
         </div>
     </div>
     
@@ -122,16 +130,21 @@
                 const diffThreshold = parseFloat(document.getElementById('diff-threshold').value);
                 
                 // Create settings object
+                const broker1Diff = parseFloat(document.getElementById('broker1-diff').value);
+                const broker2Diff = parseFloat(document.getElementById('broker2-diff').value);
+                
                 const settings = {
                     broker1: {
                         name: broker1Name,
                         commission: broker1Commission,
-                        minSpread: broker1MinSpread
+                        minSpread: broker1MinSpread,
+                        diffThreshold: broker1Diff
                     },
                     broker2: {
                         name: broker2Name,
                         commission: broker2Commission,
-                        minSpread: broker2MinSpread
+                        minSpread: broker2MinSpread,
+                        diffThreshold: broker2Diff
                     },
                     globalMaxSpread: globalMaxSpread,
                     fastMaxSpread: fastMaxSpread,
@@ -202,7 +215,9 @@
                 html += `<tr><td>Broker 2 Min Spread</td><td>${broker2MinSpread.toFixed(1)}</td></tr>`;
                 html += `<tr><td>Global Max Spread Slow</td><td>${globalMaxSpread.toFixed(1)}</td></tr>`;
                 html += `<tr><td>LMAX Max Spread</td><td>${fastMaxSpread.toFixed(1)}</td></tr>`;
-                html += `<tr><td>Diff Threshold</td><td>${diffThreshold.toFixed(1)}</td></tr>`;
+                html += `<tr><td>Global Diff Threshold</td><td>${diffThreshold.toFixed(1)}</td></tr>`;
+                html += `<tr><td>Broker 1 Differential</td><td>${broker1Diff.toFixed(1)}</td></tr>`;
+                html += `<tr><td>Broker 2 Differential</td><td>${broker2Diff.toFixed(1)}</td></tr>`;
                 html += '</table>';
                 
                 // Display recommended settings
