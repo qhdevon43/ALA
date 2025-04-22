@@ -5,10 +5,13 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize components
-    const parser = new ArbitrageLogParser();
+    let parser; // Will be initialized based on log format selection
     const analyzer = new ArbitrageLogAnalyzer();
     const recommendations = new ArbitrageRecommendations();
     const simulator = new ArbitrageSimulator();
+    
+    // Initialize the appropriate parser based on log format
+    const logFormatSelector = document.getElementById('log-format');
     
     // Store parsed sequences and analysis results
     let parsedSequences = [];
@@ -19,6 +22,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const logInput = document.getElementById('log-input');
     const analyzeBtn = document.getElementById('analyze-btn');
     const clearBtn = document.getElementById('clear-btn');
+    
+    // Initialize default parser (DAAS)
+    parser = new ArbitrageLogParser();
+    
+    // Handle log format changes
+    logFormatSelector.addEventListener('change', () => {
+        const format = logFormatSelector.value;
+        if (format === 'sharp') {
+            parser = new SharpTraderLogParser();
+        } else {
+            parser = new ArbitrageLogParser();
+        }
+    });
     const resultsSection = document.getElementById('results-section');
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabPanes = document.querySelectorAll('.tab-pane');
