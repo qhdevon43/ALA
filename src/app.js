@@ -262,8 +262,8 @@ document.addEventListener('DOMContentLoaded', () => {
             sequenceTitle.textContent = `Sequence ${index + 1}`;
             
             const sequenceProfit = document.createElement('span');
-            sequenceProfit.textContent = `$${sequence.netProfitWithCalculatedCommission.toFixed(2)}`;
-            sequenceProfit.className = sequence.netProfitWithCalculatedCommission >= 0 ? 'profit-positive' : 'profit-negative';
+            sequenceProfit.textContent = `$${sequence.netProfit.toFixed(2)}`;
+            sequenceProfit.className = sequence.netProfit >= 0 ? 'profit-positive' : 'profit-negative';
             
             sequenceHeader.appendChild(sequenceTitle);
             sequenceHeader.appendChild(sequenceProfit);
