@@ -127,6 +127,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // Get current settings
         const settings = getCurrentSettings();
         
+        // Set parser settings
+        parser.setBrokerSettings({
+            [settings.broker1.name]: {
+                commission: settings.broker1.commission,
+                minSpread: settings.broker1.minSpread
+            },
+            [settings.broker2.name]: {
+                commission: settings.broker2.commission,
+                minSpread: settings.broker2.minSpread
+            }
+        });
+        
+        // Set parser global settings
+        parser.setGlobalSettings({
+            globalMaxSpread: settings.globalMaxSpread,
+            fastMaxSpread: settings.fastMaxSpread,
+            diffThreshold: settings.diffThreshold
+        });
+        
         // Set analyzer settings
         analyzer.setBrokerSettings({
             [settings.broker1.name]: {

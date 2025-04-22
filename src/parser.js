@@ -10,6 +10,24 @@ class ArbitrageLogParser {
         this.virtualOrderMap = new Map(); // Maps virtual order IDs to their details
         this.sequences = [];
         this.currentSequence = null;
+        this.brokerSettings = {};
+        this.globalSettings = {};
+    }
+    
+    /**
+     * Set broker settings
+     * @param {Object} settings - Broker settings
+     */
+    setBrokerSettings(settings) {
+        this.brokerSettings = settings;
+    }
+    
+    /**
+     * Set global settings
+     * @param {Object} settings - Global settings
+     */
+    setGlobalSettings(settings) {
+        this.globalSettings = settings;
     }
 
     /**
@@ -576,20 +594,24 @@ class ArbitrageLogParser {
                         partProfit = priceDiff * 100 * firstOrder.lotSize;
                         
                         // Calculate commissions for both brokers (in dollars)
+                        // Use broker settings if available, otherwise use defaults
+                        const fpCommission = this.getBrokerCommission('FP', 6) / 100; // Convert from dollars per 1.0 lot to dollars per 0.01 lot
+                        const icCommission = this.getBrokerCommission('IC', 8) / 100; // Convert from dollars per 1.0 lot to dollars per 0.01 lot
+                        
                         if (firstOrder.broker === 'FP') {
-                            partCommission += 0.06; // $6 per 1.0 lot = $0.06 for 0.01 lot
-                            console.log('Added FP commission for first order: 0.06');
+                            partCommission += fpCommission;
+                            console.log(`Added FP commission for first order: ${fpCommission.toFixed(2)}`);
                         } else if (firstOrder.broker === 'IC') {
-                            partCommission += 0.08; // $8 per 1.0 lot = $0.08 for 0.01 lot
-                            console.log('Added IC commission for first order: 0.08');
+                            partCommission += icCommission;
+                            console.log(`Added IC commission for first order: ${icCommission.toFixed(2)}`);
                         }
                         
                         if (secondOrder.broker === 'FP') {
-                            partCommission += 0.06; // $6 per 1.0 lot = $0.06 for 0.01 lot
-                            console.log('Added FP commission for second order: 0.06');
+                            partCommission += fpCommission;
+                            console.log(`Added FP commission for second order: ${fpCommission.toFixed(2)}`);
                         } else if (secondOrder.broker === 'IC') {
-                            partCommission += 0.08; // $8 per 1.0 lot = $0.08 for 0.01 lot
-                            console.log('Added IC commission for second order: 0.08');
+                            partCommission += icCommission;
+                            console.log(`Added IC commission for second order: ${icCommission.toFixed(2)}`);
                         }
                         
                         console.log(`First order: ${firstOrder.broker} ${firstOrder.direction} at ${firstOrder.openPrice}`);
@@ -709,6 +731,22 @@ class ArbitrageLogParser {
      */
     getBrokerNames() {
         return Array.from(this.brokerNames);
+    }
+    
+    /**
+     * Get commission rate for a broker
+     * @param {string} broker - Broker name
+     * @param {number} defaultRate - Default commission rate if not found
+     * @returns {number} - Commission rate
+     */
+    getBrokerCommission(broker, defaultRate = 0) {
+        if (!this.brokerSettings) return defaultRate;
+        
+        if (this.brokerSettings[broker]) {
+            return this.brokerSettings[broker].commission || defaultRate;
+        }
+        
+        return defaultRate;
     }
 }
 

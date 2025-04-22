@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALA Settings Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .test-section { margin-bottom: 30px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+        input { margin: 5px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>ALA Settings Test</h1>
+    
+    <div class="test-section">
+        <h2>Broker Settings</h2>
+        <div>
+            <label>Broker 1 Name:</label>
+            <input type="text" id="broker1-name" value="FP">
+        </div>
+        <div>
+            <label>Broker 1 Commission (per 1.0 lot): $</label>
+            <input type="number" id="broker1-commission" value="6" step="1">
+        </div>
+        <div>
+            <label>Broker 1 Min Spread:</label>
+            <input type="number" id="broker1-min-spread" value="5" step="0.1">
+        </div>
+        <div>
+            <label>Broker 2 Name:</label>
+            <input type="text" id="broker2-name" value="IC">
+        </div>
+        <div>
+            <label>Broker 2 Commission (per 1.0 lot): $</label>
+            <input type="number" id="broker2-commission" value="8" step="1">
+        </div>
+        <div>
+            <label>Broker 2 Min Spread:</label>
+            <input type="number" id="broker2-min-spread" value="9" step="0.1">
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Global Settings</h2>
+        <div>
+            <label>Global Max Spread Slow:</label>
+            <input type="number" id="global-max-spread" value="20" step="0.1">
+        </div>
+        <div>
+            <label>LMAX Max Spread:</label>
+            <input type="number" id="fast-max-spread" value="100" step="0.1">
+        </div>
+        <div>
+            <label>Diff Threshold:</label>
+            <input type="number" id="diff-threshold" value="30" step="0.1">
+        </div>
+    </div>
+    
+    <button id="run-test">Run Test</button>
+    
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results">Click the button to run the test.</div>
+    </div>
+
+    <script src="src/parser.js"></script>
+    <script>
+        // Test log
+        const testLog = `21.04.2025 01:19:58.249: ##############Virtual order #102308758 was removed from opened list. XAUUSD Profit: -0.51
+21.04.2025 01:19:58.249: [IC]: Order #1111590180[XAUUSD] was closed by lock at price 3394.91. <<Execution time: 536 ms. Slippage: -3>>
+21.04.2025 01:19:57.713: Locking order #102308758[XAUUSD.r] ( Hidden StopLoss 3394.90 was trigged at price 3394.90). Current spread: 12Price shift: 
+21.04.2025 01:19:17.866: Order #102308758[XAUUSD.r] was modified (initial virtual SL=3394.90 and TP=3364.40 applied)
+21.04.2025 01:19:17.866: Virtual order  exoid:102308758 sell MARKET 0.01 XAUUSD.r at 3394.4 was created
+21.04.2025 01:19:17.866: [FP]: Order #102308758[XAUUSD.r] was closed by arbitrage at price 3394.40. <<Execution time: 37 ms. Slippage: 8>>
+21.04.2025 01:19:17.829: [FP]: Sell difference 31.0(30.0) points detected on XAUUSD(c_-812902024). Spread Fast/Slow:65.0/12.0. Bid Fast/Slow:3394.06/3394.49. Ask Fast/Slow:3394.71/3394.61. Offset Bid/Ask:0.0/0.0 Async time: 0 ms
+21.04.2025 01:14:19.889: Order #102308758 was locked with order #1111590180
+21.04.2025 01:14:19.889: [IC]: order  exoid:1111590180 sell MARKET 0.01 XAUUSD at 3394.16[XAUUSD] was opened. <<Execution time:277 ms. Slippage:-9>>
+21.04.2025 01:14:19.611: Locking order #102308758[XAUUSD.r] ( Hidden StopLoss 3393.84 was trigged at price 3393.83). Current spread: 12Price shift: 
+21.04.2025 01:14:19.010: Modifying hidden S/L for order #102308758[XAUUSD.r] to 3393.84 (Trailing). Current price=3393.89
+21.04.2025 01:14:18.522: Modifying hidden S/L for order #102308758[XAUUSD.r] to 3393.82 (Trailing). Current price=3393.87
+21.04.2025 01:14:08.113: Modifying hidden S/L for order #102308758[XAUUSD.r] to 3393.71 (Trailing). Current price=3393.76
+21.04.2025 01:14:07.118: Modifying hidden S/L for order #102308758[XAUUSD.r] to 3393.69 (Trailing). Current price=3393.74
+21.04.2025 01:14:07.012: Modifying hidden S/L for order #102308758[XAUUSD.r] to 3393.67 (Trailing). Current price=3393.72
+21.04.2025 01:14:06.914: Modifying hidden S/L for order #102308758[XAUUSD.r] to 3393.66 (Trailing). Current price=3393.71
+21.04.2025 01:14:06.819: Modifying hidden S/L for order #102308758[XAUUSD.r] to 3393.64 (Trailing). Current price=3393.69
+21.04.2025 01:13:42.773: Order #102308758[XAUUSD.r] was modified (initial virtual SL=3392.99 and TP=3423.49 applied)
+21.04.2025 01:13:42.773: [FP]: order  exoid:102308758 buy MARKET 0.01 XAUUSD.r at 3393.49 [XAUUSD.r] was opened. <<Execution time:28 ms. Slippage:14>>
+21.04.2025 01:13:42.745: [FP]: Buy difference 34.0(30.0) points detected on XAUUSD(c_-812902024). Spread Fast/Slow:62.0/10.0. Bid Fast/Slow:3393.16/3393.24. Ask Fast/Slow:3393.78/3393.34. Offset Bid/Ask:0.0/0.0 Async time: 0 ms
+21.04.2025 01:13:40.317: Strategy started ...`;
+
+        document.getElementById('run-test').addEventListener('click', function() {
+            try {
+                // Get all settings
+                const broker1Name = document.getElementById('broker1-name').value;
+                const broker1Commission = parseFloat(document.getElementById('broker1-commission').value);
+                const broker1MinSpread = parseFloat(document.getElementById('broker1-min-spread').value);
+                const broker2Name = document.getElementById('broker2-name').value;
+                const broker2Commission = parseFloat(document.getElementById('broker2-commission').value);
+                const broker2MinSpread = parseFloat(document.getElementById('broker2-min-spread').value);
+                const globalMaxSpread = parseFloat(document.getElementById('global-max-spread').value);
+                const fastMaxSpread = parseFloat(document.getElementById('fast-max-spread').value);
+                const diffThreshold = parseFloat(document.getElementById('diff-threshold').value);
+                
+                // Create broker settings
+                const brokerSettings = {};
+                brokerSettings[broker1Name] = {
+                    commission: broker1Commission,
+                    minSpread: broker1MinSpread
+                };
+                brokerSettings[broker2Name] = {
+                    commission: broker2Commission,
+                    minSpread: broker2MinSpread
+                };
+                
+                // Create global settings
+                const globalSettings = {
+                    globalMaxSpread: globalMaxSpread,
+                    fastMaxSpread: fastMaxSpread,
+                    diffThreshold: diffThreshold
+                };
+                
+                // Create parser and set settings
+                const parser = new ArbitrageLogParser();
+                parser.setBrokerSettings(brokerSettings);
+                parser.setGlobalSettings(globalSettings);
+                
+                // Parse the log
+                const sequences = parser.parseLog(testLog);
+                
+                // Start building the results HTML
+                let html = '<h3>Test Results with Custom Settings</h3>';
+                
+                // Display the settings that were used
+                html += '<h4>Settings Used:</h4>';
+                html += '<table>';
+                html += '<tr><th>Setting</th><th>Value</th></tr>';
+                html += `<tr><td>Broker 1 Name</td><td>${broker1Name}</td></tr>`;
+                html += `<tr><td>Broker 1 Commission</td><td>$${broker1Commission.toFixed(2)} per 1.0 lot</td></tr>`;
+                html += `<tr><td>Broker 1 Min Spread</td><td>${broker1MinSpread.toFixed(1)}</td></tr>`;
+                html += `<tr><td>Broker 2 Name</td><td>${broker2Name}</td></tr>`;
+                html += `<tr><td>Broker 2 Commission</td><td>$${broker2Commission.toFixed(2)} per 1.0 lot</td></tr>`;
+                html += `<tr><td>Broker 2 Min Spread</td><td>${broker2MinSpread.toFixed(1)}</td></tr>`;
+                html += `<tr><td>Global Max Spread Slow</td><td>${globalMaxSpread.toFixed(1)}</td></tr>`;
+                html += `<tr><td>LMAX Max Spread</td><td>${fastMaxSpread.toFixed(1)}</td></tr>`;
+                html += `<tr><td>Diff Threshold</td><td>${diffThreshold.toFixed(1)}</td></tr>`;
+                html += '</table>';
+                
+                // Check if settings were passed correctly to the parser
+                html += '<h4>Parser Settings Check:</h4>';
+                
+                // Check broker settings
+                const parserBroker1Settings = parser.brokerSettings[broker1Name];
+                const parserBroker2Settings = parser.brokerSettings[broker2Name];
+                
+                if (parserBroker1Settings) {
+                    const broker1CommissionCorrect = Math.abs(parserBroker1Settings.commission - broker1Commission) < 0.01;
+                    const broker1MinSpreadCorrect = Math.abs(parserBroker1Settings.minSpread - broker1MinSpread) < 0.01;
+                    
+                    html += broker1CommissionCorrect 
+                        ? `<p class="success">✓ Broker 1 Commission correctly set to $${parserBroker1Settings.commission.toFixed(2)}</p>`
+                        : `<p class="error">✗ Broker 1 Commission incorrectly set to $${parserBroker1Settings.commission.toFixed(2)} (Expected: $${broker1Commission.toFixed(2)})</p>`;
+                    
+                    html += broker1MinSpreadCorrect 
+                        ? `<p class="success">✓ Broker 1 Min Spread correctly set to ${parserBroker1Settings.minSpread.toFixed(1)}</p>`
+                        : `<p class="error">✗ Broker 1 Min Spread incorrectly set to ${parserBroker1Settings.minSpread.toFixed(1)} (Expected: ${broker1MinSpread.toFixed(1)})</p>`;
+                } else {
+                    html += `<p class="error">✗ Broker 1 Settings not found in parser</p>`;
+                }
+                
+                if (parserBroker2Settings) {
+                    const broker2CommissionCorrect = Math.abs(parserBroker2Settings.commission - broker2Commission) < 0.01;
+                    const broker2MinSpreadCorrect = Math.abs(parserBroker2Settings.minSpread - broker2MinSpread) < 0.01;
+                    
+                    html += broker2CommissionCorrect 
+                        ? `<p class="success">✓ Broker 2 Commission correctly set to $${parserBroker2Settings.commission.toFixed(2)}</p>`
+                        : `<p class="error">✗ Broker 2 Commission incorrectly set to $${parserBroker2Settings.commission.toFixed(2)} (Expected: $${broker2Commission.toFixed(2)})</p>`;
+                    
+                    html += broker2MinSpreadCorrect 
+                        ? `<p class="success">✓ Broker 2 Min Spread correctly set to ${parserBroker2Settings.minSpread.toFixed(1)}</p>`
+                        : `<p class="error">✗ Broker 2 Min Spread incorrectly set to ${parserBroker2Settings.minSpread.toFixed(1)} (Expected: ${broker2MinSpread.toFixed(1)})</p>`;
+                } else {
+                    html += `<p class="error">✗ Broker 2 Settings not found in parser</p>`;
+                }
+                
+                // Check global settings
+                const parserGlobalSettings = parser.globalSettings;
+                
+                if (parserGlobalSettings) {
+                    const globalMaxSpreadCorrect = Math.abs(parserGlobalSettings.globalMaxSpread - globalMaxSpread) < 0.01;
+                    const fastMaxSpreadCorrect = Math.abs(parserGlobalSettings.fastMaxSpread - fastMaxSpread) < 0.01;
+                    const diffThresholdCorrect = Math.abs(parserGlobalSettings.diffThreshold - diffThreshold) < 0.01;
+                    
+                    html += globalMaxSpreadCorrect 
+                        ? `<p class="success">✓ Global Max Spread Slow correctly set to ${parserGlobalSettings.globalMaxSpread.toFixed(1)}</p>`
+                        : `<p class="error">✗ Global Max Spread Slow incorrectly set to ${parserGlobalSettings.globalMaxSpread.toFixed(1)} (Expected: ${globalMaxSpread.toFixed(1)})</p>`;
+                    
+                    html += fastMaxSpreadCorrect 
+                        ? `<p class="success">✓ LMAX Max Spread correctly set to ${parserGlobalSettings.fastMaxSpread.toFixed(1)}</p>`
+                        : `<p class="error">✗ LMAX Max Spread incorrectly set to ${parserGlobalSettings.fastMaxSpread.toFixed(1)} (Expected: ${fastMaxSpread.toFixed(1)})</p>`;
+                    
+                    html += diffThresholdCorrect 
+                        ? `<p class="success">✓ Diff Threshold correctly set to ${parserGlobalSettings.diffThreshold.toFixed(1)}</p>`
+                        : `<p class="error">✗ Diff Threshold incorrectly set to ${parserGlobalSettings.diffThreshold.toFixed(1)} (Expected: ${diffThreshold.toFixed(1)})</p>`;
+                } else {
+                    html += `<p class="error">✗ Global Settings not found in parser</p>`;
+                }
+                
+                // Display sequence results
+                if (sequences.length > 0) {
+                    html += '<h4>Sequence Results:</h4>';
+                    
+                    sequences.forEach((sequence, index) => {
+                        html += `<h5>Sequence ${index + 1}</h5>`;
+                        
+                        // Calculate expected commission
+                        const expectedBroker1Commission = (broker1Commission / 100).toFixed(2); // per 0.01 lot
+                        const expectedBroker2Commission = (broker2Commission / 100).toFixed(2); // per 0.01 lot
+                        const expectedTotalCommission = (parseFloat(expectedBroker1Commission) + parseFloat(expectedBroker2Commission)).toFixed(2);
+                        
+                        html += `<p>Total Profit: $${sequence.totalProfit.toFixed(2)}</p>`;
+                        html += `<p>Total Commission: $${sequence.totalCommission.toFixed(2)}</p>`;
+                        
+                        // Check if commission matches expected
+                        const commissionCorrect = Math.abs(sequence.totalCommission - expectedTotalCommission) < 0.01;
+                        html += commissionCorrect 
+                            ? `<p class="success">✓ CORRECT! Commission: $${sequence.totalCommission.toFixed(2)} (Expected: $${expectedTotalCommission})</p>`
+                            : `<p class="error">✗ INCORRECT! Commission: $${sequence.totalCommission.toFixed(2)} (Expected: $${expectedTotalCommission})</p>`;
+                        
+                        html += `<p>Net Profit: $${sequence.netProfit.toFixed(2)}</p>`;
+                        
+                        // Calculate expected net profit
+                        const expectedNetProfit = (0.67 - parseFloat(expectedTotalCommission)).toFixed(2);
+                        const netProfitCorrect = Math.abs(sequence.netProfit - expectedNetProfit) < 0.01;
+                        html += netProfitCorrect 
+                            ? `<p class="success">✓ CORRECT! Net Profit: $${sequence.netProfit.toFixed(2)} (Expected: $${expectedNetProfit})</p>`
+                            : `<p class="error">✗ INCORRECT! Net Profit: $${sequence.netProfit.toFixed(2)} (Expected: $${expectedNetProfit})</p>`;
+                    });
+                } else {
+                    html += '<p class="error">No sequences found in the log.</p>';
+                }
+                
+                document.getElementById('results').innerHTML = html;
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
