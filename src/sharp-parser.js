@@ -409,9 +409,15 @@ class SharpTraderLogParser {
                     // Calculate part totals
                     this.calculatePartTotals(currentPart);
                     
-                    // Check if the sequence is complete
-                    if (this.isSequenceComplete()) {
-                        this.finalizeCurrentSequence();
+                    // If closed by arbitrage, don't finalize the sequence yet as there might be more parts
+                    if (closeReason.includes('arbitrage')) {
+                        // Don't finalize the sequence, just mark the part as completed
+                        // The next difference detection will start a new part
+                    } else {
+                        // Check if the sequence is complete
+                        if (this.isSequenceComplete()) {
+                            this.finalizeCurrentSequence();
+                        }
                     }
                 }
             }
@@ -443,6 +449,23 @@ class SharpTraderLogParser {
         
         // Store the virtual order
         this.virtualOrderMap.set(orderId, virtualOrder);
+        
+        // Check if we need to start a new sequence part
+        // This typically happens after an order is closed by arbitrage
+        if (this.currentSequence && this.currentSequence.parts.length > 0) {
+            const lastPart = this.currentSequence.parts[this.currentSequence.parts.length - 1];
+            if (lastPart.completed && lastPart.buyOrder && lastPart.sellOrder) {
+                // If the last part was completed by arbitrage, this virtual order is likely part of a new sequence part
+                const lastClosedOrder = lastPart.buyOrder.status === 'closed' && lastPart.buyOrder.closeReason === 'by arbitrage' ? 
+                    lastPart.buyOrder : (lastPart.sellOrder.status === 'closed' && lastPart.sellOrder.closeReason === 'by arbitrage' ? 
+                    lastPart.sellOrder : null);
+                
+                if (lastClosedOrder && lastClosedOrder.id === orderId) {
+                    // This virtual order is related to the previous part
+                    // We should be ready for a new part when the next difference is detected
+                }
+            }
+        }
     }
 
     /**
