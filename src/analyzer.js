@@ -363,8 +363,8 @@ class ArbitrageLogAnalyzer {
             }
             
             // Aggregate totals
-            summary.totalProfit += analysis.profit;
-            summary.totalCommission += analysis.commission;
+            summary.totalProfit += analysis.totalProfit;
+            summary.totalCommission += analysis.calculatedCommission;
             
             // Collect execution metrics
             executionTimes.push(...analysis.executionTimes);
