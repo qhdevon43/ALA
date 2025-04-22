@@ -1,0 +1,2 @@
+This is a test file to force GitHub Desktop to detect changes.
+You can delete this file after committing the changes.
