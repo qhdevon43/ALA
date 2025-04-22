@@ -369,7 +369,8 @@ class ArbitrageRecommendations {
             const currentDiff = this.currentSettings.diffThreshold || 30;
             const recommendedDiff = recommendedSettings.broker1.diffThreshold;
             
-            if (recommendedDiff !== currentDiff) {
+            // Always include broker 1 differential regardless of whether it changed
+            {
                 const direction = recommendedDiff > currentDiff ? 'increased' : 'decreased';
                 const explanation = {
                     setting: `Broker #1 Differential (${recommendedSettings.broker1.name})`,
@@ -394,7 +395,8 @@ class ArbitrageRecommendations {
             const currentDiff = this.currentSettings.diffThreshold || 30;
             const recommendedDiff = recommendedSettings.broker2.diffThreshold;
             
-            if (recommendedDiff !== currentDiff) {
+            // Always include broker 2 differential regardless of whether it changed
+            {
                 const direction = recommendedDiff > currentDiff ? 'increased' : 'decreased';
                 const explanation = {
                     setting: `Broker #2 Differential (${recommendedSettings.broker2.name})`,

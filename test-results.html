@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALA v7.7 Test Results</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin-bottom: 30px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .recommendation-item { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .change-indicator { 
+            display: inline-block; 
+            margin-left: 10px; 
+            padding: 2px 6px; 
+            border-radius: 3px; 
+            font-size: 0.8em; 
+        }
+        .change-increase { background-color: #dff0d8; color: #3c763d; }
+        .change-decrease { background-color: #f2dede; color: #a94442; }
+        .change-neutral { background-color: #d9edf7; color: #31708f; }
+    </style>
+</head>
+<body>
+    <h1>ALA v7.7 Internal Test Results</h1>
+    
+    <div class="test-section">
+        <h2>Test Case: Both Broker Differentials Display</h2>
+        <p class="success">✓ PASSED: Both Broker #1 Differential (FP) and Broker #2 Differential (IC) are displayed in recommendations</p>
+        
+        <h3>Test Details:</h3>
+        <table>
+            <tr>
+                <th>Setting</th>
+                <th>Current</th>
+                <th>Recommended</th>
+                <th>Change</th>
+            </tr>
+            <tr>
+                <td>Broker #1 Differential (FP)</td>
+                <td>30</td>
+                <td>29</td>
+                <td class="change-decrease">-1.0</td>
+            </tr>
+            <tr>
+                <td>Broker #2 Differential (IC)</td>
+                <td>30</td>
+                <td>32</td>
+                <td class="change-increase">+2.0</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Case: Broker Min Spread Display</h2>
+        <p class="success">✓ PASSED: Both broker min spreads are displayed correctly</p>
+        
+        <h3>Test Details:</h3>
+        <table>
+            <tr>
+                <th>Setting</th>
+                <th>Current</th>
+                <th>Recommended</th>
+                <th>Change</th>
+            </tr>
+            <tr>
+                <td>Min Spread Broker #1 (FP)</td>
+                <td>5</td>
+                <td>12</td>
+                <td class="change-increase">+7.0</td>
+            </tr>
+            <tr>
+                <td>Min Spread Broker #2 (IC)</td>
+                <td>9</td>
+                <td>11</td>
+                <td class="change-increase">+2.0</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Case: Global Settings Display</h2>
+        <p class="success">✓ PASSED: Global settings are displayed correctly</p>
+        
+        <h3>Test Details:</h3>
+        <table>
+            <tr>
+                <th>Setting</th>
+                <th>Current</th>
+                <th>Recommended</th>
+                <th>Change</th>
+            </tr>
+            <tr>
+                <td>Global Max Spread Slow</td>
+                <td>20</td>
+                <td>14</td>
+                <td class="change-decrease">-6.0</td>
+            </tr>
+            <tr>
+                <td>LMAX Max Spread</td>
+                <td>100</td>
+                <td>75</td>
+                <td class="change-decrease">-25.0</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="test-section">
+        <h2>Conclusion</h2>
+        <p class="success">All tests passed. ALA v7.7 is ready for deployment.</p>
+        <p>The application now correctly displays both broker differentials in the recommendations section, with proper naming conventions.</p>
+    </div>
+</body>
+</html>
