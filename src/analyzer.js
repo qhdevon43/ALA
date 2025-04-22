@@ -373,7 +373,11 @@ class ArbitrageLogAnalyzer {
         }
 
         // Calculate net profit
-        summary.netProfit = summary.totalProfit - summary.totalCommission;
+        // Use the sum of individual sequence net profits instead of recalculating
+        summary.netProfit = 0;
+        for (const analysis of sequenceAnalyses) {
+            summary.netProfit += analysis.netProfit;
+        }
         
         // Calculate averages
         summary.averageProfit = profits.length > 0 ? 
